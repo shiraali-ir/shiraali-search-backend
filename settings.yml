@@ -4,14 +4,12 @@ general:
   debug: false
   instance_name: "Shiraali Search"
   enable_metrics: false
-
-search:
   formats:
     - html
     - json
 
 server:
-  secret_key: "CHANGE-THIS-TO-A-LONG-RANDOM-SECRET"
+  secret_key: "REPLACE_WITH_RANDOM_SECRET"
   limiter: false
   public_instance: false
   default_http_headers:
