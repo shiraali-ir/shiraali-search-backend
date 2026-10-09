@@ -9,8 +9,9 @@ general:
     - json
 
 server:
-  secret_key: "REPLACE_WITH_RANDOM_SECRET"
+  secret_key: "TEMPORARY-KEY-REPLACED-BY-ENV"
   limiter: false
   public_instance: false
+  bind_address: "0.0.0.0"
   default_http_headers:
     Access-Control-Allow-Origin: "https://shiraali.ir"
