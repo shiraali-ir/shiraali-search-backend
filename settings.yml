@@ -21,9 +21,16 @@ server:
 
 engines:
   - name: ecosia
+    engine: xpath
     disabled: false
     shortcut: eco
+    categories: [general]
     timeout: 10.0
+    search_url: https://www.ecosia.org/search?q={query}
+    results_xpath: //div[@class="result"]
+    title_xpath: .//a[@class="result-title"]
+    url_xpath: .//a[@class="result-title"]/@href
+    content_xpath: .//p
 
   - name: dogpile
     disabled: false
