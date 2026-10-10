@@ -190,6 +190,7 @@ time_range_map: dict[str, str] = {
 
 
 def request(query: str, params: dict[str, t.Any]) -> None:
+
     args: dict[str, t.Any] = {
         "q": query,
         "source": "web",
@@ -206,10 +207,12 @@ def request(query: str, params: dict[str, t.Any]) -> None:
     if brave_category == "goggles":
         args["goggles_id"] = Goggles
 
+    params["headers"]["Accept-Encoding"] = "gzip, deflate"
     params["url"] = f"{base_url}{brave_category}?{urlencode(args)}"
     logger.debug("url %s", params["url"])
 
     # set properties in the cookies
+
     params["cookies"]["safesearch"] = safesearch_map.get(params["safesearch"], "off")
     # the useLocation is IP based, we use cookie "country" for the region
     params["cookies"]["useLocation"] = "0"
@@ -255,6 +258,7 @@ def extract_json_data(text: str) -> dict[str, t.Any]:
 
 def response(resp: "SXNG_Response") -> EngineResults:
     # delegate the response to the appropriate parser based on search type
+
     match brave_category:
         case "search" | "goggles":
             return _parse_results(parse_search_result, resp)
@@ -363,75 +367,30 @@ def _get_response_data(json_data: dict[str, t.Any], category: str | None = None)
 
 
 def _parse_results(parse_func: Callable[..., MainResult | Image], resp: "SXNG_Response") -> EngineResults:
-    """Parse Brave JSON results, with an HTML fallback for web search."""
+    """Extract json data and loop through result list
+    The suppled :py.obj:`parse_func` parses individual result items
+    General search / goggle search relies on :py.obj:`_parse_secondary_items` for mixed result-types"""
+    # Example script source containing the data:
+    #
+    # kit.start(app, element, {
+    #    node_ids: [0, 19],
+    #    data: [{type:"data",data: .... ["q","goggles_id"],route:1,url:1}}]
+    #          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     results = EngineResults()
-
-    try:
-        json_data: dict[str, t.Any] = extract_json_data(resp.text)
-        json_resp: dict[str, t.Any] = _get_response_data(json_data, brave_category)
-
-        if not json_resp:
-            return results
-
-        for result in json_resp.get("results", []):
-            results.add(parse_func(result))
-
-        if brave_category in ("search", "goggles"):
-            _parse_secondary_items(json_data, results)
-
+    json_data: dict[str, t.Any] = extract_json_data(resp.text)
+    json_resp: dict[str, t.Any] = _get_response_data(json_data, brave_category)
+    if not json_resp:
+        # if _get_response_data returns {} - indicates it was parsed successfully but had "noResults" = True
         return results
 
-    except (
-        ValueError,
-        IndexError,
-        KeyError,
-        TypeError,
-        json.JSONDecodeError,
-        SearxEngineResponseException,
-    ) as exc:
-        if brave_category not in ("search", "goggles"):
-            raise
+    json_results: list[dict[str, t.Any]] = json_resp["results"]
+    for result in json_results:
+        results.add(parse_func(result))
 
-        logger.warning(
-            "Brave JSON parsing failed; trying HTML fallback: %s",
-            exc,
-        )
+    # general search / goggle might have secondary items
+    if brave_category in ("search", "goggles"):
+        _parse_secondary_items(json_data, results)
 
-    dom = resp.html()
-    snippets = dom.xpath('//div[contains(@class, "snippet") and @data-type="web"]')
-
-    for item in snippets:
-        links = item.xpath('.//a[@href]')
-        if not links:
-            continue
-
-        title_nodes = item.xpath('.//*[contains(@class, "search-snippet-title")]')
-        if not title_nodes:
-            continue
-
-        url = links[0].get("href", "")
-        title = html_to_text(" ".join(title_nodes[0].itertext())).strip()
-
-        if not url.startswith(("https://", "http://")) or not title:
-            continue
-
-        description_nodes = item.xpath('.//*[contains(@class, "generic-snippet")]//*[contains(@class, "content")]')
-        content = (
-            html_to_text(" ".join(description_nodes[0].itertext())).strip()
-            if description_nodes
-            else ""
-        )
-
-        results.add(
-            MainResult(
-                template="default.html",
-                title=title,
-                content=content,
-                url=url,
-            )
-        )
-
-    logger.debug("Brave HTML fallback returned %d results", len(results))
     return results
 
 
