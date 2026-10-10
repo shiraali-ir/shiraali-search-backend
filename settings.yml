@@ -20,6 +20,9 @@ server:
     Access-Control-Allow-Origin: "https://shiraali.ir"
 
 engines:
+  - name: bing
+    disabled: false
+
   - name: ecosia
     engine: xpath
     disabled: false
