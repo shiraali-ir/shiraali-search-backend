@@ -18,3 +18,17 @@ server:
   bind_address: "0.0.0.0"
   default_http_headers:
     Access-Control-Allow-Origin: "https://shiraali.ir"
+
+engines:
+  - name: ecosia
+    disabled: false
+    shortcut: eco
+    timeout: 10.0
+
+  - name: dogpile
+    disabled: false
+    inactive: false
+    shortcut: dog
+    dogpile_categ: search
+    categories: [general]
+    timeout: 8.0
