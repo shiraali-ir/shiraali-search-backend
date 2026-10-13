@@ -27,24 +27,17 @@ outgoing:
 engines:
   - name: bing
     disabled: false
-
   - name: yandex
     disabled: false
-
-  - name: duckduckgo
-    disabled: false
-
   - name: google
     disabled: false
-
+  - name: duckduckgo
+    disabled: false
   - name: brave
     disabled: false
-
   - name: startpage
     disabled: false
-
   - name: ecosia
     disabled: false
-
   - name: dogpile
     disabled: false
