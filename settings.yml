@@ -16,6 +16,7 @@ server:
   secret_key: "ultrasecretkey"
   limiter: false
   public_instance: false
+  image_proxy: true
 
 outgoing:
   request_timeout: 6.0
@@ -40,4 +41,10 @@ engines:
     disabled: false
 
   - name: startpage
+    disabled: false
+
+  - name: ecosia
+    disabled: false
+
+  - name: dogpile
     disabled: false
