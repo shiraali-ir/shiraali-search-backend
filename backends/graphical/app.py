@@ -18,7 +18,7 @@ TIMEOUT = httpx.Timeout(25.0, connect=10.0)
 
 @app.get("/")
 def root():
-return {"ok": True, "service": "shiraali-graphical"}
+    return {"ok": True, "service": "shiraali-graphical"}
 
 @app.get("/health")
 def health():
